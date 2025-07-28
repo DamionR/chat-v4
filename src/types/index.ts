@@ -43,6 +43,7 @@ export const MODEL_CONFIGS: Record<Provider, ModelConfig> = {
   xai: {
     name: 'X AI',
     models: {
+      'grok-4-latest': 'Grok 4 Latest',
       'grok-3-mini': 'Grok 3 Mini',
       'grok-3-mini-fast': 'Grok 3 Mini Fast',
       'grok-3-mini-latest': 'Grok 3 Mini Latest',
