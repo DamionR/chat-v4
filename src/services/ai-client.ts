@@ -50,10 +50,10 @@ export class AIClient {
         messages: [{ 
           id: 'test', 
           role: 'user', 
-          content: 'Hello', 
+          content: 'Testing. Just say hi and hello world and nothing else.', 
           timestamp: new Date() 
         }],
-        maxTokens: 5
+        maxTokens: 50
       });
     } catch (error) {
       throw new Error(`Failed to connect to ${this.config.provider}: ${error}`);
@@ -352,7 +352,8 @@ export class AIClient {
       model: this.config.model,
       messages,
       temperature,
-      max_tokens: maxTokens
+      max_tokens: maxTokens,
+      stream: false
     };
 
     if (tools.length > 0) {
@@ -372,8 +373,26 @@ export class AIClient {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: `HTTP ${response.status}` } }));
-      throw new Error(error.error?.message || `HTTP ${response.status}: ${response.statusText}`);
+      const errorText = await response.text().catch(() => '');
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.error?.message || errorData.message || errorMessage;
+      } catch {
+        if (errorText) {
+          errorMessage = errorText;
+        }
+      }
+      
+      console.error('X AI API Error:', { 
+        status: response.status, 
+        statusText: response.statusText, 
+        body: errorText,
+        requestBody: requestBody,
+        url: url
+      });
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
