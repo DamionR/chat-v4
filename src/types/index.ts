@@ -1,62 +1,36 @@
 // Model provider configurations
-export interface ModelConfig {
+export interface ProviderConfig {
   name: string;
-  models: Record<string, string>;
   endpoint: string;
-  prefix: string;
+  baseURL: string;
 }
 
 export type Provider = 'openai' | 'anthropic' | 'google' | 'xai' | 'openrouter';
 
-export const MODEL_CONFIGS: Record<Provider, ModelConfig & { baseURL: string }> = {
+export const PROVIDER_CONFIGS: Record<Provider, ProviderConfig> = {
   openai: {
     name: 'OpenAI',
-    models: {
-      'gpt-4o': 'GPT-4o',
-      'gpt-4o-mini': 'GPT-4o Mini',
-      'gpt-4-turbo': 'GPT-4 Turbo',
-      'gpt-3.5-turbo': 'GPT-3.5 Turbo'
-    },
     endpoint: '/v1/chat/completions',
-    prefix: '',
     baseURL: 'https://api.openai.com'
   },
   anthropic: {
     name: 'Anthropic',
-    models: {
-      'claude-3-7-sonnet-20250219': 'Claude 3.7 Sonnet',
-      'claude-3-5-sonnet-20241022': 'Claude 3.5 Sonnet',
-      'claude-3-haiku-20240307': 'Claude 3 Haiku'
-    },
     endpoint: '/v1/chat/completions',
-    prefix: '',
     baseURL: 'https://api.anthropic.com'
   },
   google: {
     name: 'Google',
-    models: {
-      'gemini-1.5-pro': 'Gemini 1.5 Pro',
-      'gemini-1.5-flash': 'Gemini 1.5 Flash',
-      'gemini-pro': 'Gemini Pro'
-    },
     endpoint: '/v1/chat/completions',
-    prefix: '',
     baseURL: 'https://generativelanguage.googleapis.com'
   },
   xai: {
     name: 'X AI',
-    models: {
-      'grok-3-mini': 'Grok 3 Mini'
-    },
     endpoint: '/v1/chat/completions',
-    prefix: '',
     baseURL: 'https://api.x.ai'
   },
   openrouter: {
     name: 'OpenRouter',
-    models: {}, // Will be populated dynamically
     endpoint: '/v1/chat/completions',
-    prefix: '',
     baseURL: 'https://openrouter.ai/api'
   }
 };

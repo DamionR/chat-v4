@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import type { Provider, Message, MCPServer, CustomTool } from '../types';
-import { MODEL_CONFIGS } from '../types';
+import { PROVIDER_CONFIGS } from '../types';
 import { MCPClientManager } from './mcp-client';
 
 export interface AIClientConfig {
@@ -39,7 +39,7 @@ export class AIClient {
     this.config = config;
     this.mcpManager = new MCPClientManager();
     
-    const providerConfig = MODEL_CONFIGS[config.provider];
+    const providerConfig = PROVIDER_CONFIGS[config.provider];
     
     this.openai = new OpenAI({
       apiKey: config.authToken,

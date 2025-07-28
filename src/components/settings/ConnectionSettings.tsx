@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useChatStore } from '../../store'
-import { MODEL_CONFIGS, type Provider } from '../../types'
+import { PROVIDER_CONFIGS, type Provider } from '../../types'
 import { ModelService } from '../../services/model-service'
 
 const ConnectionSettings: React.FC = () => {
@@ -237,7 +237,7 @@ const ConnectionSettings: React.FC = () => {
 
       {connectionStatus.isConnected && (
         <div className="text-xs text-primary-500 text-center">
-          🟢 Connected to {MODEL_CONFIGS[currentProvider].name} - {MODEL_CONFIGS[currentProvider].models[currentModel]}
+          🟢 Connected to {PROVIDER_CONFIGS[currentProvider].name} - {currentModel}
         </div>
       )}
 
