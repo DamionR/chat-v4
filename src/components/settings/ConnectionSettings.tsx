@@ -34,6 +34,8 @@ const ConnectionSettings: React.FC = () => {
         return 'sk-ant-...'
       case 'google':
         return 'Your Google AI API Key'
+      case 'xai':
+        return 'xai-...'
       default:
         return 'Your API Key'
     }
@@ -47,6 +49,8 @@ const ConnectionSettings: React.FC = () => {
         return 'Anthropic API Key'
       case 'google':
         return 'Google AI API Key'
+      case 'xai':
+        return 'X AI API Key'
       default:
         return 'API Key'
     }
@@ -95,6 +99,7 @@ const ConnectionSettings: React.FC = () => {
           {currentProvider === 'openai' && 'Get your API key from OpenAI Platform'}
           {currentProvider === 'anthropic' && 'Get your API key from Anthropic Console'}
           {currentProvider === 'google' && 'Get your API key from Google AI Studio'}
+          {currentProvider === 'xai' && 'Get your API key from X AI Platform'}
         </p>
       </div>
 
@@ -111,6 +116,7 @@ const ConnectionSettings: React.FC = () => {
           <option value="openai">OpenAI (GPT)</option>
           <option value="anthropic">Anthropic (Claude)</option>
           <option value="google">Google (Gemini)</option>
+          <option value="xai">X AI (Grok)</option>
         </select>
       </div>
 

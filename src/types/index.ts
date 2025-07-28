@@ -6,7 +6,7 @@ export interface ModelConfig {
   prefix: string;
 }
 
-export type Provider = 'openai' | 'anthropic' | 'google';
+export type Provider = 'openai' | 'anthropic' | 'google' | 'xai';
 
 export const MODEL_CONFIGS: Record<Provider, ModelConfig> = {
   openai: {
@@ -39,6 +39,17 @@ export const MODEL_CONFIGS: Record<Provider, ModelConfig> = {
     },
     endpoint: '/v1/chat/completions',
     prefix: 'google:'
+  },
+  xai: {
+    name: 'X AI',
+    models: {
+      'grok-3-mini': 'Grok 3 Mini',
+      'grok-3-mini-fast': 'Grok 3 Mini Fast',
+      'grok-3-mini-latest': 'Grok 3 Mini Latest',
+      'grok-3-mini-beta': 'Grok 3 Mini Beta'
+    },
+    endpoint: '/v1/chat/completions',
+    prefix: ''
   }
 };
 

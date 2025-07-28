@@ -89,6 +89,8 @@ export class AIClient {
         return this.sendAnthropicRequest(apiMessages, temperature, maxTokens, allTools);
       case 'google':
         return this.sendGoogleRequest(apiMessages, temperature, maxTokens, allTools);
+      case 'xai':
+        return this.sendXAIRequest(apiMessages, temperature, maxTokens, allTools);
       default:
         throw new Error(`Unsupported provider: ${this.config.provider}`);
     }
@@ -334,6 +336,69 @@ export class AIClient {
     }
 
     throw new Error('No valid response from Google API');
+  }
+
+  private async sendXAIRequest(
+    messages: any[], 
+    temperature: number, 
+    maxTokens: number, 
+    tools: any[]
+  ): Promise<ChatCompletionResponse> {
+    // Use X AI API endpoint
+    const baseURL = this.config.baseURL || 'https://api.x.ai';
+    const url = `${baseURL}/v1/chat/completions`;
+
+    const requestBody: any = {
+      model: this.config.model,
+      messages,
+      temperature,
+      max_tokens: maxTokens
+    };
+
+    if (tools.length > 0) {
+      requestBody.tools = tools;
+      requestBody.tool_choice = 'auto';
+    }
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.config.authToken}`
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: { message: `HTTP ${response.status}` } }));
+      throw new Error(error.error?.message || `HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const choice = data.choices[0];
+
+    let content = choice.message.content || '';
+    let toolCalls = choice.message.tool_calls;
+
+    // Handle tool calls
+    if (toolCalls && toolCalls.length > 0) {
+      const toolResults = await this.executeToolCalls(toolCalls);
+      content += '\n\n' + toolResults.map(result => 
+        `**${result.toolName}**: ${result.success ? result.result : `Error: ${result.error}`}`
+      ).join('\n\n');
+    }
+
+    return {
+      content,
+      toolCalls,
+      usage: data.usage ? {
+        promptTokens: data.usage.prompt_tokens,
+        completionTokens: data.usage.completion_tokens,
+        totalTokens: data.usage.total_tokens
+      } : undefined
+    };
   }
 
   private formatMessagesForAPI(messages: Message[]): any[] {
