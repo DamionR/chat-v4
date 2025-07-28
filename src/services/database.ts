@@ -18,7 +18,8 @@ export class SQLiteManager {
     try {
       const SQL = await initSqlJs({
         locateFile: (file) => {
-          if (import.meta.env.PROD) {
+          // In production (GitHub Pages), load from the correct base path
+          if (process.env.NODE_ENV === 'production') {
             return `/chat-v4/${file}`;
           }
           return `/${file}`;
