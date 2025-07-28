@@ -11,6 +11,8 @@ function App() {
   
   // Enable keyboard shortcuts
   useKeyboardShortcuts()
+  
+  // Full AI Chat Client with Node.js polyfills for browser compatibility
 
   useEffect(() => {
     initialize().catch(error => {
