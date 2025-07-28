@@ -26,11 +26,10 @@ export class SQLiteManager {
         }
       });
 
-      // Try to load existing database from localStorage
-      const savedDb = localStorage.getItem('chatbot-db');
+      // Try to load existing database from IndexedDB
+      const savedDb = await this.loadFromIndexedDB();
       if (savedDb) {
-        const buffer = new Uint8Array(JSON.parse(savedDb));
-        this.db = new SQL.Database(buffer);
+        this.db = new SQL.Database(savedDb);
       } else {
         this.db = new SQL.Database();
       }
@@ -136,9 +135,62 @@ export class SQLiteManager {
   private saveToStorage(): void {
     if (!this.db) return;
     
-    const data = this.db.export();
-    const buffer = Array.from(data);
-    localStorage.setItem('chatbot-db', JSON.stringify(buffer));
+    const buffer = this.db.export();
+    this.saveToIndexedDB(buffer);
+  }
+
+  private async loadFromIndexedDB(): Promise<Uint8Array | null> {
+    return new Promise((resolve) => {
+      const request = indexedDB.open('ChatbotDB', 1);
+      
+      request.onerror = () => resolve(null);
+      
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains('sqlite')) {
+          db.createObjectStore('sqlite');
+        }
+      };
+      
+      request.onsuccess = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        const transaction = db.transaction(['sqlite'], 'readonly');
+        const store = transaction.objectStore('sqlite');
+        const getRequest = store.get('database');
+        
+        getRequest.onsuccess = () => {
+          const result = getRequest.result;
+          resolve(result ? new Uint8Array(result) : null);
+        };
+        
+        getRequest.onerror = () => resolve(null);
+      };
+    });
+  }
+
+  private async saveToIndexedDB(buffer: Uint8Array): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('ChatbotDB', 1);
+      
+      request.onerror = () => reject(new Error('Failed to open IndexedDB'));
+      
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains('sqlite')) {
+          db.createObjectStore('sqlite');
+        }
+      };
+      
+      request.onsuccess = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        const transaction = db.transaction(['sqlite'], 'readwrite');
+        const store = transaction.objectStore('sqlite');
+        const putRequest = store.put(Array.from(buffer), 'database');
+        
+        putRequest.onsuccess = () => resolve();
+        putRequest.onerror = () => reject(new Error('Failed to save to IndexedDB'));
+      };
+    });
   }
 
   // Settings methods
