@@ -21,15 +21,18 @@ const AgentModal: React.FC<AgentModalProps> = ({ agent, onClose, onSave }) => {
       mcpServers: agent?.capabilities.mcpServers ?? true,
     }
   })
+  
+  const [validationError, setValidationError] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!formData.name.trim() || !formData.instructions.trim()) {
-      alert('Please enter both agent name and instructions')
+      setValidationError('Please enter both agent name and instructions')
       return
     }
 
+    setValidationError('')
     onSave(formData)
   }
 
@@ -62,6 +65,12 @@ const AgentModal: React.FC<AgentModalProps> = ({ agent, onClose, onSave }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {/* Validation Error */}
+          {validationError && (
+            <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+              <p className="text-red-400 text-xs">{validationError}</p>
+            </div>
+          )}
           <div>
             <label className="block text-xs font-medium text-dark-100 mb-2">
               Agent Name *

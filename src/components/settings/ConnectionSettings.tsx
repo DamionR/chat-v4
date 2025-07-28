@@ -20,6 +20,7 @@ const ConnectionSettings: React.FC = () => {
 
   const [isConnecting, setIsConnecting] = useState(false)
   const [availableModels, setAvailableModels] = useState<Record<string, string>>({})
+  const [errorMessage, setErrorMessage] = useState('')
   const [isLoadingModels, setIsLoadingModels] = useState(false)
   
   const modelService = ModelService.getInstance()
@@ -96,16 +97,17 @@ const ConnectionSettings: React.FC = () => {
 
   const handleConnect = async () => {
     if (!authToken.trim()) {
-      alert(`Please enter your ${getApiKeyLabel(currentProvider)}`)
+      setErrorMessage(`Please enter your ${getApiKeyLabel(currentProvider)}`)
       return
     }
 
     setIsConnecting(true)
+    setErrorMessage('')
     try {
       await connect()
     } catch (error) {
       console.error('Connection failed:', error)
-      alert(`Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setErrorMessage(`Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsConnecting(false)
     }
@@ -121,6 +123,12 @@ const ConnectionSettings: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Error Message */}
+      {errorMessage && (
+        <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+          <p className="text-red-400 text-xs">{errorMessage}</p>
+        </div>
+      )}
       <div>
         <label className="block text-xs font-medium text-dark-100 mb-2">
           {getApiKeyLabel(currentProvider)}

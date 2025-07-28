@@ -17,6 +17,7 @@ const AgentSettings: React.FC = () => {
 
   const [showModal, setShowModal] = useState(false)
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const handleCreateAgent = () => {
     setEditingAgent(null)
@@ -29,8 +30,13 @@ const AgentSettings: React.FC = () => {
   }
 
   const handleDeleteAgent = (agentId: string) => {
-    if (confirm('Are you sure you want to delete this agent?')) {
-      removeAgent(agentId)
+    setDeleteConfirm(agentId)
+  }
+  
+  const confirmDelete = () => {
+    if (deleteConfirm) {
+      removeAgent(deleteConfirm)
+      setDeleteConfirm(null)
     }
   }
 
@@ -172,6 +178,36 @@ const AgentSettings: React.FC = () => {
             setShowModal(false)
           }}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-dark-600 rounded-lg border border-dark-200 w-full max-w-sm">
+            <div className="p-4">
+              <h3 className="text-lg font-semibold text-dark-50 mb-2">
+                Delete Agent
+              </h3>
+              <p className="text-dark-100 text-sm mb-4">
+                Are you sure you want to delete this agent? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  className="flex-1 btn btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 btn bg-red-500 hover:bg-red-600 text-white"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
