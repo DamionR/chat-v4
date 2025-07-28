@@ -6,9 +6,9 @@ export interface ModelConfig {
   prefix: string;
 }
 
-export type Provider = 'openai' | 'anthropic' | 'google' | 'xai';
+export type Provider = 'openai' | 'anthropic' | 'google' | 'xai' | 'openrouter';
 
-export const MODEL_CONFIGS: Record<Provider, ModelConfig> = {
+export const MODEL_CONFIGS: Record<Provider, ModelConfig & { baseURL: string }> = {
   openai: {
     name: 'OpenAI',
     models: {
@@ -18,7 +18,8 @@ export const MODEL_CONFIGS: Record<Provider, ModelConfig> = {
       'gpt-3.5-turbo': 'GPT-3.5 Turbo'
     },
     endpoint: '/v1/chat/completions',
-    prefix: ''
+    prefix: '',
+    baseURL: 'https://api.openai.com'
   },
   anthropic: {
     name: 'Anthropic',
@@ -28,7 +29,8 @@ export const MODEL_CONFIGS: Record<Provider, ModelConfig> = {
       'claude-3-haiku-20240307': 'Claude 3 Haiku'
     },
     endpoint: '/v1/chat/completions',
-    prefix: 'anthropic:'
+    prefix: '',
+    baseURL: 'https://api.anthropic.com'
   },
   google: {
     name: 'Google',
@@ -38,7 +40,8 @@ export const MODEL_CONFIGS: Record<Provider, ModelConfig> = {
       'gemini-pro': 'Gemini Pro'
     },
     endpoint: '/v1/chat/completions',
-    prefix: 'google:'
+    prefix: '',
+    baseURL: 'https://generativelanguage.googleapis.com'
   },
   xai: {
     name: 'X AI',
@@ -46,7 +49,15 @@ export const MODEL_CONFIGS: Record<Provider, ModelConfig> = {
       'grok-3-mini': 'Grok 3 Mini'
     },
     endpoint: '/v1/chat/completions',
-    prefix: ''
+    prefix: '',
+    baseURL: 'https://api.x.ai'
+  },
+  openrouter: {
+    name: 'OpenRouter',
+    models: {}, // Will be populated dynamically
+    endpoint: '/v1/chat/completions',
+    prefix: '',
+    baseURL: 'https://openrouter.ai/api'
   }
 };
 

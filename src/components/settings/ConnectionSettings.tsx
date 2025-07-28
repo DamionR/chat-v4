@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useChatStore } from '../../store'
 import { MODEL_CONFIGS, type Provider } from '../../types'
+import { ModelService } from '../../services/model-service'
 
 const ConnectionSettings: React.FC = () => {
   const {
@@ -18,13 +19,47 @@ const ConnectionSettings: React.FC = () => {
   } = useChatStore()
 
   const [isConnecting, setIsConnecting] = useState(false)
+  const [availableModels, setAvailableModels] = useState<Record<string, string>>({})
+  const [isLoadingModels, setIsLoadingModels] = useState(false)
+  
+  const modelService = ModelService.getInstance()
 
   const handleProviderChange = async (provider: Provider) => {
     await setProvider(provider)
-    // Set default model for the new provider
-    const defaultModel = Object.keys(MODEL_CONFIGS[provider].models)[0]
-    await setModel(defaultModel)
+    await loadModelsForProvider(provider)
   }
+
+  const loadModelsForProvider = async (provider: Provider) => {
+    setIsLoadingModels(true)
+    try {
+      const models = await modelService.getAvailableModels(provider, authToken)
+      setAvailableModels(models)
+      
+      // Set default model for the new provider
+      const modelKeys = Object.keys(models)
+      if (modelKeys.length > 0) {
+        await setModel(modelKeys[0])
+      }
+    } catch (error) {
+      console.error('Failed to load models:', error)
+      // Fallback to static models
+      const staticModels = MODEL_CONFIGS[provider].models
+      setAvailableModels(staticModels)
+      const defaultModel = Object.keys(staticModels)[0]
+      if (defaultModel) {
+        await setModel(defaultModel)
+      }
+    } finally {
+      setIsLoadingModels(false)
+    }
+  }
+
+  // Load models when component mounts or provider/authToken changes
+  useEffect(() => {
+    if (currentProvider) {
+      loadModelsForProvider(currentProvider)
+    }
+  }, [currentProvider, authToken])
 
   const getApiKeyPlaceholder = (provider: Provider): string => {
     switch (provider) {
@@ -36,6 +71,8 @@ const ConnectionSettings: React.FC = () => {
         return 'Your Google AI API Key'
       case 'xai':
         return 'xai-...'
+      case 'openrouter':
+        return 'sk-or-...'
       default:
         return 'Your API Key'
     }
@@ -51,6 +88,8 @@ const ConnectionSettings: React.FC = () => {
         return 'Google AI API Key'
       case 'xai':
         return 'X AI API Key'
+      case 'openrouter':
+        return 'OpenRouter API Key'
       default:
         return 'API Key'
     }
@@ -100,6 +139,7 @@ const ConnectionSettings: React.FC = () => {
           {currentProvider === 'anthropic' && 'Get your API key from Anthropic Console'}
           {currentProvider === 'google' && 'Get your API key from Google AI Studio'}
           {currentProvider === 'xai' && 'Get your API key from X AI Platform'}
+          {currentProvider === 'openrouter' && 'Get your API key from OpenRouter.ai'}
         </p>
       </div>
 
@@ -117,6 +157,7 @@ const ConnectionSettings: React.FC = () => {
           <option value="anthropic">Anthropic (Claude)</option>
           <option value="google">Google (Gemini)</option>
           <option value="xai">X AI (Grok)</option>
+          <option value="openrouter">OpenRouter (Multi-Provider)</option>
         </select>
       </div>
 
@@ -128,13 +169,17 @@ const ConnectionSettings: React.FC = () => {
           value={currentModel}
           onChange={(e) => setModel(e.target.value)}
           className="form-select w-full"
-          disabled={connectionStatus.isConnected}
+          disabled={connectionStatus.isConnected || isLoadingModels}
         >
-          {Object.entries(MODEL_CONFIGS[currentProvider].models).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
+          {isLoadingModels ? (
+            <option>Loading models...</option>
+          ) : (
+            Object.entries(availableModels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))
+          )}
         </select>
       </div>
 
