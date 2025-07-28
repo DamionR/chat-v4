@@ -26,8 +26,8 @@ export class SQLiteManager {
         }
       });
 
-      // Try to load existing database from IndexedDB
-      const savedDb = await this.loadFromIndexedDB();
+      // Try to load existing database from OPFS
+      const savedDb = await this.loadFromOPFS();
       if (savedDb) {
         this.db = new SQL.Database(savedDb);
       } else {
@@ -136,9 +136,56 @@ export class SQLiteManager {
     if (!this.db) return;
     
     const buffer = this.db.export();
-    this.saveToIndexedDB(buffer);
+    this.saveToOPFS(buffer);
   }
 
+  private async loadFromOPFS(): Promise<Uint8Array | null> {
+    try {
+      // Check if OPFS is supported
+      if (!('storage' in navigator) || !('getDirectory' in navigator.storage)) {
+        console.warn('OPFS not supported, falling back to IndexedDB');
+        return await this.loadFromIndexedDB();
+      }
+
+      const opfsRoot = await navigator.storage.getDirectory();
+      
+      try {
+        const fileHandle = await opfsRoot.getFileHandle('chatbot.db');
+        const file = await fileHandle.getFile();
+        const buffer = await file.arrayBuffer();
+        return new Uint8Array(buffer);
+      } catch (error) {
+        // File doesn't exist yet
+        return null;
+      }
+    } catch (error) {
+      console.error('OPFS load failed, falling back to IndexedDB:', error);
+      return await this.loadFromIndexedDB();
+    }
+  }
+
+  private async saveToOPFS(buffer: Uint8Array): Promise<void> {
+    try {
+      // Check if OPFS is supported
+      if (!('storage' in navigator) || !('getDirectory' in navigator.storage)) {
+        console.warn('OPFS not supported, falling back to IndexedDB');
+        await this.saveToIndexedDB(buffer);
+        return;
+      }
+
+      const opfsRoot = await navigator.storage.getDirectory();
+      const fileHandle = await opfsRoot.getFileHandle('chatbot.db', { create: true });
+      const writable = await fileHandle.createWritable();
+      
+      await writable.write(buffer);
+      await writable.close();
+    } catch (error) {
+      console.error('OPFS save failed, falling back to IndexedDB:', error);
+      await this.saveToIndexedDB(buffer);
+    }
+  }
+
+  // Fallback IndexedDB methods for older browsers
   private async loadFromIndexedDB(): Promise<Uint8Array | null> {
     return new Promise((resolve) => {
       const request = indexedDB.open('ChatbotDB', 1);
