@@ -28,6 +28,9 @@ export default defineConfig({
       output: {
         globals: {}
       }
+    },
+    commonjsOptions: {
+      include: [/sql\.js/, /node_modules/]
     }
   },
   optimizeDeps: {

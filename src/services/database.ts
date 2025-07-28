@@ -17,7 +17,12 @@ export class SQLiteManager {
 
     try {
       const SQL = await initSqlJs({
-        locateFile: (file) => `https://sql.js.org/dist/${file}`
+        locateFile: (file) => {
+          if (import.meta.env.PROD) {
+            return `/chat-v4/${file}`;
+          }
+          return `/${file}`;
+        }
       });
 
       // Try to load existing database from localStorage
