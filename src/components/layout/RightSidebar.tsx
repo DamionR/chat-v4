@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Settings, Bot, Wrench, Server } from 'lucide-react'
+import { Settings, Bot, Wrench, Server, X } from 'lucide-react'
 import ConnectionSettings from '../settings/ConnectionSettings'
 import AgentSettings from '../settings/AgentSettings'
 import MCPSettings from '../settings/MCPSettings'
@@ -7,7 +7,12 @@ import ToolSettings from '../settings/ToolSettings'
 
 type TabType = 'connection' | 'agents' | 'mcp' | 'tools'
 
-const RightSidebar: React.FC = () => {
+interface RightSidebarProps {
+  isOpen: boolean
+  onClose?: () => void
+}
+
+const RightSidebar: React.FC<RightSidebarProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<TabType>('connection')
 
   const tabs = [
@@ -17,11 +22,26 @@ const RightSidebar: React.FC = () => {
     { id: 'tools' as TabType, label: 'Tools', icon: Wrench },
   ]
 
+  if (!isOpen) {
+    return null
+  }
+
   return (
-    <div className="w-80 sidebar border-l border-dark-200 flex flex-col transition-all duration-300 xl:flex hidden">
+    <div className="w-80 sidebar border-l border-dark-200 flex flex-col transition-all duration-300">
       {/* Header with Tabs */}
       <div className="border-b border-dark-200">
-        <h2 className="text-sm font-medium p-4 text-dark-50">Settings & Tools</h2>
+        <div className="flex items-center justify-between p-4">
+          <h2 className="text-sm font-medium text-dark-50">Settings & Tools</h2>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-dark-300 rounded transition-colors"
+              title="Hide sidebar"
+            >
+              <X size={16} className="text-dark-100" />
+            </button>
+          )}
+        </div>
         
         <div className="flex border-b border-dark-200">
           {tabs.map((tab) => (

@@ -1,9 +1,14 @@
 import React, { useState, useMemo } from 'react'
-import { Plus, MessageSquare, Trash2, Search, Download, Upload } from 'lucide-react'
+import { Plus, MessageSquare, Trash2, Search, Download, Upload, X } from 'lucide-react'
 import { useChatStore } from '../../store'
 import { cn } from '../../utils/cn'
 
-const LeftSidebar: React.FC = () => {
+interface LeftSidebarProps {
+  isOpen: boolean
+  onClose?: () => void
+}
+
+const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onClose }) => {
   const { 
     chatSessions, 
     currentChatId, 
@@ -115,10 +120,27 @@ const LeftSidebar: React.FC = () => {
   }
   
 
+  if (!isOpen) {
+    return null
+  }
+
   return (
-    <div className="w-80 sidebar border-r border-dark-200 flex flex-col transition-all duration-300 lg:flex hidden">
+    <div className="w-80 sidebar border-r border-dark-200 flex flex-col transition-all duration-300">
       {/* Header */}
       <div className="p-4 border-b border-dark-200 space-y-3">
+        {/* Close Button */}
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-medium text-dark-50">Chat History</h2>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-dark-300 rounded transition-colors"
+              title="Hide sidebar"
+            >
+              <X size={16} className="text-dark-100" />
+            </button>
+          )}
+        </div>
         <button
           onClick={handleNewChat}
           className="w-full btn btn-primary flex items-center gap-2 justify-center"
