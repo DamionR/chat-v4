@@ -32,6 +32,11 @@ const ConnectionSettings: React.FC = () => {
   const loadModelsForProvider = async (provider: Provider) => {
     setIsLoadingModels(true)
     try {
+      if (!authToken) {
+        setAvailableModels({})
+        return
+      }
+      
       const models = await modelService.getAvailableModels(provider, authToken)
       setAvailableModels(models)
       
@@ -42,13 +47,7 @@ const ConnectionSettings: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to load models:', error)
-      // Fallback to static models
-      const staticModels = MODEL_CONFIGS[provider].models
-      setAvailableModels(staticModels)
-      const defaultModel = Object.keys(staticModels)[0]
-      if (defaultModel) {
-        await setModel(defaultModel)
-      }
+      setAvailableModels({})
     } finally {
       setIsLoadingModels(false)
     }
@@ -169,10 +168,12 @@ const ConnectionSettings: React.FC = () => {
           value={currentModel}
           onChange={(e) => setModel(e.target.value)}
           className="form-select w-full"
-          disabled={connectionStatus.isConnected || isLoadingModels}
+          disabled={connectionStatus.isConnected || isLoadingModels || Object.keys(availableModels).length === 0}
         >
           {isLoadingModels ? (
             <option>Loading models...</option>
+          ) : Object.keys(availableModels).length === 0 ? (
+            <option>Enter API key to load models</option>
           ) : (
             Object.entries(availableModels).map(([value, label]) => (
               <option key={value} value={value}>

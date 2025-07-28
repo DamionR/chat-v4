@@ -1,4 +1,3 @@
-import { MODEL_CONFIGS } from '../types';
 
 export class ModelService {
   private static instance: ModelService;
@@ -12,18 +11,171 @@ export class ModelService {
   }
 
   async getAvailableModels(provider: string, apiKey?: string): Promise<Record<string, string>> {
-    if (provider === 'openrouter' && apiKey) {
-      return this.fetchOpenRouterModels(apiKey);
+    if (!apiKey) {
+      throw new Error('API key is required to fetch models');
     }
-    
-    // For other providers, return static models
-    const config = MODEL_CONFIGS[provider as keyof typeof MODEL_CONFIGS];
-    return config?.models || {};
+
+    switch (provider) {
+      case 'openai':
+        return this.fetchOpenAIModels(apiKey);
+      case 'anthropic':
+        return this.fetchAnthropicModels(apiKey);
+      case 'google':
+        return this.fetchGoogleModels(apiKey);
+      case 'xai':
+        return this.fetchXAIModels(apiKey);
+      case 'openrouter':
+        return this.fetchOpenRouterModels(apiKey);
+      default:
+        throw new Error(`Unsupported provider: ${provider}`);
+    }
+  }
+
+  private async fetchOpenAIModels(apiKey: string): Promise<Record<string, string>> {
+    try {
+      const cacheKey = `openai_${apiKey.slice(-10)}`;
+      const cached = this.modelCache[cacheKey];
+      if (cached && Date.now() - cached.timestamp < 5 * 60 * 1000) {
+        return cached.models;
+      }
+
+      const response = await fetch('https://api.openai.com/v1/models', {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API returned ${response.status}`);
+      }
+
+      const data = await response.json();
+      const models: Record<string, string> = {};
+
+      // Filter for chat completion models
+      data.data?.forEach((model: any) => {
+        if (model.id && (model.id.includes('gpt') || model.id.includes('o1'))) {
+          models[model.id] = model.id.toUpperCase();
+        }
+      });
+
+      this.modelCache[cacheKey] = { models, timestamp: Date.now() };
+      return models;
+    } catch (error) {
+      console.error('Error fetching OpenAI models:', error);
+      throw error;
+    }
+  }
+
+  private async fetchAnthropicModels(apiKey: string): Promise<Record<string, string>> {
+    try {
+      const cacheKey = `anthropic_${apiKey.slice(-10)}`;
+      const cached = this.modelCache[cacheKey];
+      if (cached && Date.now() - cached.timestamp < 5 * 60 * 1000) {
+        return cached.models;
+      }
+
+      const response = await fetch('https://api.anthropic.com/v1/models', {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'anthropic-version': '2023-06-01'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Anthropic API returned ${response.status}`);
+      }
+
+      const data = await response.json();
+      const models: Record<string, string> = {};
+
+      data.data?.forEach((model: any) => {
+        if (model.id && model.id.includes('claude')) {
+          models[model.id] = model.id.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+        }
+      });
+
+      this.modelCache[cacheKey] = { models, timestamp: Date.now() };
+      return models;
+    } catch (error) {
+      console.error('Error fetching Anthropic models:', error);
+      throw error;
+    }
+  }
+
+  private async fetchGoogleModels(apiKey: string): Promise<Record<string, string>> {
+    try {
+      const cacheKey = `google_${apiKey.slice(-10)}`;
+      const cached = this.modelCache[cacheKey];
+      if (cached && Date.now() - cached.timestamp < 5 * 60 * 1000) {
+        return cached.models;
+      }
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`);
+
+      if (!response.ok) {
+        throw new Error(`Google API returned ${response.status}`);
+      }
+
+      const data = await response.json();
+      const models: Record<string, string> = {};
+
+      // Filter for chat models
+      data.models?.forEach((model: any) => {
+        if (model.name && model.name.includes('gemini') && model.supportedGenerationMethods?.includes('generateContent')) {
+          const modelId = model.name.replace('models/', '');
+          models[modelId] = model.displayName || modelId;
+        }
+      });
+
+      this.modelCache[cacheKey] = { models, timestamp: Date.now() };
+      return models;
+    } catch (error) {
+      console.error('Error fetching Google models:', error);
+      throw error;
+    }
+  }
+
+  private async fetchXAIModels(apiKey: string): Promise<Record<string, string>> {
+    try {
+      const cacheKey = `xai_${apiKey.slice(-10)}`;
+      const cached = this.modelCache[cacheKey];
+      if (cached && Date.now() - cached.timestamp < 5 * 60 * 1000) {
+        return cached.models;
+      }
+
+      const response = await fetch('https://api.x.ai/v1/models', {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`X AI API returned ${response.status}`);
+      }
+
+      const data = await response.json();
+      const models: Record<string, string> = {};
+
+      data.data?.forEach((model: any) => {
+        if (model.id) {
+          models[model.id] = model.id.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+        }
+      });
+
+      this.modelCache[cacheKey] = { models, timestamp: Date.now() };
+      return models;
+    } catch (error) {
+      console.error('Error fetching X AI models:', error);
+      throw error;
+    }
   }
 
   private async fetchOpenRouterModels(apiKey: string): Promise<Record<string, string>> {
     try {
-      // Check cache first (cache for 5 minutes)
       const cacheKey = `openrouter_${apiKey.slice(-10)}`;
       const cached = this.modelCache[cacheKey];
       if (cached && Date.now() - cached.timestamp < 5 * 60 * 1000) {
@@ -38,44 +190,24 @@ export class ModelService {
       });
 
       if (!response.ok) {
-        console.warn('Failed to fetch OpenRouter models, using defaults');
-        return this.getDefaultOpenRouterModels();
+        throw new Error(`OpenRouter API returned ${response.status}`);
       }
 
       const data = await response.json();
       const models: Record<string, string> = {};
 
-      // Filter and format models
       data.data?.forEach((model: any) => {
         if (model.id && model.name) {
           models[model.id] = model.name;
         }
       });
 
-      // Cache the results
-      this.modelCache[cacheKey] = {
-        models,
-        timestamp: Date.now()
-      };
-
+      this.modelCache[cacheKey] = { models, timestamp: Date.now() };
       return models;
     } catch (error) {
       console.error('Error fetching OpenRouter models:', error);
-      return this.getDefaultOpenRouterModels();
+      throw error;
     }
   }
 
-  private getDefaultOpenRouterModels(): Record<string, string> {
-    return {
-      'openai/gpt-4o': 'GPT-4o',
-      'openai/gpt-4o-mini': 'GPT-4o Mini',
-      'anthropic/claude-3.5-sonnet': 'Claude 3.5 Sonnet',
-      'anthropic/claude-3-haiku': 'Claude 3 Haiku',
-      'google/gemini-pro': 'Gemini Pro',
-      'meta-llama/llama-3.2-3b-instruct': 'Llama 3.2 3B',
-      'meta-llama/llama-3.2-70b-instruct': 'Llama 3.2 70B',
-      'mistralai/mistral-7b-instruct': 'Mistral 7B',
-      'microsoft/wizardlm-2-8x22b': 'WizardLM 2 8x22B'
-    };
-  }
 }
