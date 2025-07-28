@@ -1,10 +1,23 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    nodePolyfills({
+      // Enable polyfills for specific globals and modules
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+      // Enable polyfills for these Node.js modules
+      protocolImports: true,
+    }),
+  ],
   base: process.env.NODE_ENV === 'production' ? '/chat-v4/' : '/',
   resolve: {
     alias: {
@@ -34,6 +47,6 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ['@mastra/core/agent']
+    include: ['@mastra/core/agent', 'sql.js']
   }
 })
