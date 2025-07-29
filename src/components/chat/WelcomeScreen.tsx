@@ -38,7 +38,7 @@ const WelcomeScreen: React.FC = () => {
           <h1 className="text-4xl font-light text-dark-50 mb-4">
             {useAgentMode && currentAgent 
               ? `Chat with ${currentAgent.name}`
-              : 'AI Chat Client'
+              : 'Chat-V4'
             }
           </h1>
           

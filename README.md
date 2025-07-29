@@ -1,4 +1,4 @@
-# AI Chat Client
+# Chat-V4
 
 A modern React-based AI chat client with support for multiple providers, MCP servers, custom agents, and single-file compilation.
 
