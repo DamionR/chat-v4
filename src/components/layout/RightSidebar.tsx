@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import { Settings, Bot, Wrench, Server, X } from 'lucide-react'
+import { Settings, Bot, Wrench, Server, Link, X } from 'lucide-react'
 import ConnectionSettings from '../settings/ConnectionSettings'
 import AgentSettings from '../settings/AgentSettings'
 import MCPSettings from '../settings/MCPSettings'
+import MCPBridgeSettings from '../settings/MCPBridgeSettings'
 import ToolSettings from '../settings/ToolSettings'
 
-type TabType = 'connection' | 'agents' | 'mcp' | 'tools'
+type TabType = 'connection' | 'agents' | 'mcp' | 'bridge' | 'tools'
 
 interface RightSidebarProps {
   isOpen: boolean
@@ -19,6 +20,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ isOpen, onClose }) => {
     { id: 'connection' as TabType, label: 'Connection', icon: Settings },
     { id: 'agents' as TabType, label: 'Agents', icon: Bot },
     { id: 'mcp' as TabType, label: 'MCP Servers', icon: Server },
+    { id: 'bridge' as TabType, label: 'MCP Bridge', icon: Link },
     { id: 'tools' as TabType, label: 'Tools', icon: Wrench },
   ]
 
@@ -68,6 +70,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ isOpen, onClose }) => {
         {activeTab === 'connection' && <ConnectionSettings />}
         {activeTab === 'agents' && <AgentSettings />}
         {activeTab === 'mcp' && <MCPSettings />}
+        {activeTab === 'bridge' && <MCPBridgeSettings />}
         {activeTab === 'tools' && <ToolSettings />}
       </div>
     </div>

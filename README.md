@@ -8,6 +8,7 @@ A powerful AI chat client with multi-provider support, custom agents, and advanc
 - 🎯 **Dynamic Models** - Automatically fetches available models from each provider's API
 - 🧠 **Custom Agents** - Create specialized AI assistants with unique capabilities
 - 🔌 **MCP Support** - Connect Model Context Protocol servers for extended functionality
+- 🌉 **Built-in MCP Bridge** - Connect local stdio MCP servers directly through the web interface
 - 📁 **Multimodal** - Drag-and-drop files, images, and documents
 - 💾 **SQLite Storage** - Persistent chat history using OPFS
 - 🎨 **Modern UI** - Collapsible sidebars, dark theme, ChatGPT-inspired design
