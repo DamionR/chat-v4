@@ -5,11 +5,11 @@ A powerful, modern AI chat client that supports multiple AI providers with dynam
 ## ✨ Key Features
 
 ### 🤖 Multi-Provider Support
-- **OpenAI** (GPT-4o, GPT-4o Mini, GPT-4 Turbo, GPT-3.5 Turbo, o1 models)
-- **Anthropic** (Claude 3.7 Sonnet, Claude 3.5 Sonnet, Claude 3 Haiku, Claude 3 Opus)
-- **Google** (Gemini 1.5 Pro, Gemini 1.5 Flash, Gemini Pro)
-- **X AI** (Grok 3 Mini)
-- **OpenRouter** (Access to 100+ models from various providers)
+- **OpenAI** - Access all available GPT and o1 models via API
+- **Anthropic** - Access all available Claude models via API
+- **Google** - Access all available Gemini models via API
+- **X AI** - Access all available Grok models via API
+- **OpenRouter** - Access to 100+ models from various providers via API
 
 ### 🎯 Dynamic Model Selection
 - Models are fetched dynamically from each provider's API
