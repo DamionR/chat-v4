@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Plus, Server, Trash2, ToggleLeft, ToggleRight } from 'lucide-react'
 import { useChatStore } from '../../store'
+import ConfirmationModal from '../modals/ConfirmationModal'
 
 const MCPSettings: React.FC = () => {
   const { mcpServers, addMCPServer, removeMCPServer, updateMCPServer } = useChatStore()
@@ -9,12 +10,25 @@ const MCPSettings: React.FC = () => {
     url: '',
     token: ''
   })
+  
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    title?: string
+    message?: string
+    type?: 'confirm' | 'alert'
+    serverId?: string
+  }>({ isOpen: false })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!formData.name.trim() || !formData.url.trim()) {
-      alert('Please enter both server name and URL')
+      setConfirmModal({
+        isOpen: true,
+        title: 'Missing Information',
+        message: 'Please enter both server name and URL.',
+        type: 'alert'
+      })
       return
     }
 
@@ -33,9 +47,7 @@ const MCPSettings: React.FC = () => {
   }
 
   const deleteServer = (serverId: string) => {
-    if (confirm('Are you sure you want to delete this MCP server?')) {
-      removeMCPServer(serverId)
-    }
+    setConfirmModal({ isOpen: true, serverId })
   }
 
   return (
@@ -168,6 +180,25 @@ const MCPSettings: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title || (confirmModal.serverId ? 'Delete MCP Server' : 'Missing Information')}
+        message={confirmModal.message || (confirmModal.serverId 
+          ? 'Are you sure you want to delete this MCP server? This action cannot be undone.'
+          : 'Please enter both server name and URL.'
+        )}
+        type={confirmModal.type || (confirmModal.serverId ? 'confirm' : 'alert')}
+        variant={confirmModal.serverId ? 'danger' : 'default'}
+        onConfirm={() => {
+          if (confirmModal.serverId) {
+            removeMCPServer(confirmModal.serverId)
+          }
+          setConfirmModal({ isOpen: false })
+        }}
+        onCancel={() => setConfirmModal({ isOpen: false })}
+      />
     </div>
   )
 }

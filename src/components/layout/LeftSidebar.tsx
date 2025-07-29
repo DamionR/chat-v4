@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react'
 import { Plus, MessageSquare, Trash2, Search, Download, Upload, X } from 'lucide-react'
 import { useChatStore } from '../../store'
 import { cn } from '../../utils/cn'
+import ConfirmationModal from '../modals/ConfirmationModal'
 
 interface LeftSidebarProps {
   isOpen: boolean
@@ -20,6 +21,14 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onClose }) => {
   } = useChatStore()
   
   const [searchQuery, setSearchQuery] = useState('')
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    type: 'confirm' | 'alert'
+    variant?: 'default' | 'danger'
+    onConfirm?: () => void
+  }>({ isOpen: false, title: '', message: '', type: 'confirm' })
 
   const handleNewChat = () => {
     clearMessages()
@@ -43,9 +52,17 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onClose }) => {
 
   const handleDeleteChat = (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (confirm('Are you sure you want to delete this chat?')) {
-      deleteChatSession(sessionId)
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Chat',
+      message: 'Are you sure you want to delete this chat? This action cannot be undone.',
+      type: 'confirm',
+      variant: 'danger',
+      onConfirm: () => {
+        deleteChatSession(sessionId)
+        setConfirmModal(prev => ({ ...prev, isOpen: false }))
+      }
+    })
   }
   
   const handleExportChats = async () => {
@@ -78,7 +95,12 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onClose }) => {
       URL.revokeObjectURL(url)
     } catch (error) {
       console.error('Export failed:', error)
-      alert('Failed to export chat history')
+      setConfirmModal({
+        isOpen: true,
+        title: 'Export Failed',
+        message: 'Failed to export chat history. Please try again.',
+        type: 'alert'
+      })
     }
   }
   
@@ -94,25 +116,52 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onClose }) => {
         throw new Error('Invalid import file format')
       }
       
-      if (confirm('This will add the imported chats to your existing history. Continue?')) {
-        // Import each chat session with its messages
-        for (const chatData of importData.chatsWithMessages) {
-          const { messages, ...sessionData } = chatData
-          // Save the chat session and its messages
-          await db.saveChatSession(sessionData)
-          // Save messages for this chat
-          for (let i = 0; i < messages.length; i++) {
-            await db.saveMessage(sessionData.id, messages[i], i)
+      setConfirmModal({
+        isOpen: true,
+        title: 'Import Chat History',
+        message: 'This will add the imported chats to your existing history. Continue?',
+        type: 'confirm',
+        onConfirm: async () => {
+          try {
+            // Import each chat session with its messages
+            for (const chatData of importData.chatsWithMessages) {
+              const { messages, ...sessionData } = chatData
+              // Save the chat session and its messages
+              await db.saveChatSession(sessionData)
+              // Save messages for this chat
+              for (let i = 0; i < messages.length; i++) {
+                await db.saveMessage(sessionData.id, messages[i], i)
+              }
+            }
+            
+            // Reload chat history
+            await loadChatHistory()
+            setConfirmModal({
+              isOpen: true,
+              title: 'Import Successful',
+              message: 'Chat history imported successfully!',
+              type: 'alert'
+            })
+          } catch (error) {
+            console.error('Import error:', error)
+            setConfirmModal({
+              isOpen: true,
+              title: 'Import Failed',
+              message: 'Failed to import some chats. Please check the file format.',
+              type: 'alert'
+            })
           }
+          setConfirmModal(prev => ({ ...prev, isOpen: false }))
         }
-        
-        // Reload chat history
-        await loadChatHistory()
-        alert('Chat history imported successfully!')
-      }
+      })
     } catch (error) {
       console.error('Import failed:', error)
-      alert('Failed to import chat history. Please check the file format.')
+      setConfirmModal({
+        isOpen: true,
+        title: 'Import Failed',
+        message: 'Failed to import chat history. Please check the file format.',
+        type: 'alert'
+      })
     }
     
     // Reset the input
@@ -234,6 +283,17 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onClose }) => {
           </div>
         )}
       </div>
+      
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        variant={confirmModal.variant}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   )
 }
