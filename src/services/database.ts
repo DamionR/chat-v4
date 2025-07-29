@@ -120,6 +120,7 @@ export class SQLiteManager {
         multimodal BOOLEAN DEFAULT TRUE,
         function_calling BOOLEAN DEFAULT TRUE,
         mcp_servers BOOLEAN DEFAULT TRUE,
+        selected_mcp_servers TEXT DEFAULT '[]',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )`
@@ -551,8 +552,8 @@ export class SQLiteManager {
     const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO agents 
       (id, name, description, instructions, temperature, max_tokens, 
-       multimodal, function_calling, mcp_servers, created_at, updated_at) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+       multimodal, function_calling, mcp_servers, selected_mcp_servers, created_at, updated_at) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `);
     
     stmt.run([
@@ -565,6 +566,7 @@ export class SQLiteManager {
       agent.capabilities.multimodal ? 1 : 0,
       agent.capabilities.functionCalling ? 1 : 0,
       agent.capabilities.mcpServers ? 1 : 0,
+      JSON.stringify(agent.selectedMCPServers),
       agent.createdAt
     ]);
     stmt.free();
@@ -592,6 +594,7 @@ export class SQLiteManager {
           functionCalling: Boolean(row.function_calling),
           mcpServers: Boolean(row.mcp_servers)
         },
+        selectedMCPServers: row.selected_mcp_servers ? JSON.parse(row.selected_mcp_servers as string) : [],
         createdAt: row.created_at as string
       });
     }

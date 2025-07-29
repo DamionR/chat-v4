@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, Server } from 'lucide-react'
 import type { Agent } from '../../types'
+import { useChatStore } from '../../store'
 
 interface AgentModalProps {
   agent: Agent | null
@@ -9,6 +10,8 @@ interface AgentModalProps {
 }
 
 const AgentModal: React.FC<AgentModalProps> = ({ agent, onClose, onSave }) => {
+  const { mcpServers } = useChatStore()
+  
   const [formData, setFormData] = useState({
     name: agent?.name || '',
     description: agent?.description || '',
@@ -19,7 +22,8 @@ const AgentModal: React.FC<AgentModalProps> = ({ agent, onClose, onSave }) => {
       multimodal: agent?.capabilities.multimodal ?? true,
       functionCalling: agent?.capabilities.functionCalling ?? true,
       mcpServers: agent?.capabilities.mcpServers ?? true,
-    }
+    },
+    selectedMCPServers: agent?.selectedMCPServers || []
   })
   
   const [validationError, setValidationError] = useState('')
@@ -44,6 +48,15 @@ const AgentModal: React.FC<AgentModalProps> = ({ agent, onClose, onSave }) => {
     setFormData(prev => ({
       ...prev,
       capabilities: { ...prev.capabilities, [capability]: value }
+    }))
+  }
+  
+  const handleMCPServerToggle = (serverId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedMCPServers: prev.selectedMCPServers.includes(serverId)
+        ? prev.selectedMCPServers.filter(id => id !== serverId)
+        : [...prev.selectedMCPServers, serverId]
     }))
   }
 
@@ -182,6 +195,35 @@ Use the available tools when appropriate."
               </label>
             </div>
           </div>
+
+          {/* MCP Server Selection */}
+          {formData.capabilities.mcpServers && mcpServers.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-dark-100 mb-3">
+                <Server size={14} className="inline mr-1" />
+                Select MCP Servers
+              </label>
+              <div className="space-y-2 max-h-32 overflow-y-auto border border-dark-200 rounded-lg p-3">
+                {mcpServers.map((server) => (
+                  <label key={server.id} className="flex items-center gap-2 text-xs cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.selectedMCPServers.includes(server.id)}
+                      onChange={() => handleMCPServerToggle(server.id)}
+                      className="rounded border-dark-200 bg-dark-300 text-primary-500"
+                    />
+                    <span className="flex-1">{server.name}</span>
+                    <span className="text-dark-100 text-xs">{server.url}</span>
+                  </label>
+                ))}
+              </div>
+              {formData.selectedMCPServers.length === 0 && (
+                <p className="text-xs text-dark-100 mt-2">
+                  No MCP servers selected. This agent won't have access to any MCP tools.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">

@@ -18,9 +18,11 @@ export class AgentService {
 
   async createAgent(agent: Agent, mcpServers: MCPServer[] = [], customTools: CustomTool[] = []): Promise<void> {
     try {
-      // Connect to enabled MCP servers for this agent
+      // Connect to enabled MCP servers that are selected for this agent
       const enabledMcpServers = mcpServers.filter(server => 
-        server.enabled && agent.capabilities.mcpServers
+        server.enabled && 
+        agent.capabilities.mcpServers &&
+        agent.selectedMCPServers.includes(server.id)
       );
 
       for (const server of enabledMcpServers) {

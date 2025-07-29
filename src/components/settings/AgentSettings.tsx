@@ -117,7 +117,7 @@ const AgentSettings: React.FC = () => {
                   )}
                   {agent.capabilities.mcpServers && (
                     <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded">
-                      MCP
+                      MCP ({agent.selectedMCPServers?.length || 0})
                     </span>
                   )}
                 </div>

@@ -83,6 +83,7 @@ export interface Agent {
     functionCalling: boolean;
     mcpServers: boolean;
   };
+  selectedMCPServers: string[]; // Array of MCP server IDs
   createdAt: string;
 }
 
